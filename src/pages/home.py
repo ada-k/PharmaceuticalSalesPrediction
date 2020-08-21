@@ -1,6 +1,6 @@
 import streamlit as st
 
-import awesome_streamlit as ast
+# import awesome_streamlit as ast
 
 
 # pylint: disable=line-too-long

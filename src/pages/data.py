@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd 
 
-import awesome_streamlit as ast
+# import awesome_streamlit as ast
 
 
 # pylint: disable=line-too-long
@@ -19,7 +19,7 @@ def write():
         The *Sales, Customers, Open, State Holiday* and *School Holiday* features vary across the stores with days.
         """)
         na_value=['',' ','nan','Nan','NaN','na', '<Na>']
-        train = pd.read_csv('train.csv', na_values=na_value)
-        store = pd.read_csv('store.csv', na_values=na_value)
+        train = pd.read_csv('src/pages/train.csv', na_values=na_value)
+        store = pd.read_csv('src/store.csv', na_values=na_value)
         full_train = pd.merge(left = train, right = store, how = 'inner', left_on = 'Store', right_on = 'Store')
         st.write(full_train.sample(20))
