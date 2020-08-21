@@ -11,7 +11,7 @@ def write():
     with st.spinner("Loading Plots ..."):
         st.title('Predicted Sales visualisation  📈 📊')
 
-        data = pd.read_csv('/home/ada/stuff/streamlit 101/sales/src/sub_plot.csv')
+        data = pd.read_csv('src/pages/sub_plot.csv')
         # st.sidebar.title("Predicted Sales Seasonality")
         # st.sidebar.subheader("Choose Feature or Aspect to plot")
         # plot = st.sidebar.selectbox("feature", ("Seasonality", "Open", 'Promotions', 'State Holiday', 'Assortment', 'Store Type','Competition'))

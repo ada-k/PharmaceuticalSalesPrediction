@@ -20,6 +20,6 @@ def write():
         """)
         na_value=['',' ','nan','Nan','NaN','na', '<Na>']
         train = pd.read_csv('src/pages/train.csv', na_values=na_value)
-        store = pd.read_csv('src/store.csv', na_values=na_value)
+        store = pd.read_csv('src/pages/store.csv', na_values=na_value)
         full_train = pd.merge(left = train, right = store, how = 'inner', left_on = 'Store', right_on = 'Store')
         st.write(full_train.sample(20))
