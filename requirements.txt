@@ -1,3 +1,4 @@
+awesome-streamlit==20200728.1
 pandas==1.0.3
 numpy==1.19.0
 seaborn==0.10.0
