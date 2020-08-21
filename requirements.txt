@@ -1,4 +1,4 @@
-awesome-streamlit
+awesome-streamlit-master
 pandas==1.0.3
 numpy==1.19.0
 seaborn==0.10.0
