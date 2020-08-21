@@ -19,7 +19,7 @@ def write():
         The *Sales, Customers, Open, State Holiday* and *School Holiday* features vary across the stores with days.
         """)
         na_value=['',' ','nan','Nan','NaN','na', '<Na>']
-        train = pd.read_csv('/home/ada/stuff/streamlit 101/sales/train.csv', na_values=na_value)
-        store = pd.read_csv('/home/ada/stuff/streamlit 101/sales/store.csv', na_values=na_value)
+        train = pd.read_csv('train.csv', na_values=na_value)
+        store = pd.read_csv('store.csv', na_values=na_value)
         full_train = pd.merge(left = train, right = store, how = 'inner', left_on = 'Store', right_on = 'Store')
         st.write(full_train.sample(20))

@@ -46,10 +46,10 @@ def write():
         # load data
         global train_features, test_features, train_target, full_test, full_train, train, test, store, submission, categorical, numerical
         na_value=['',' ','nan','Nan','NaN','na', '<Na>']
-        train = pd.read_csv('/home/ada/stuff/streamlit 101/sales/train.csv', na_values=na_value)
-        test = pd.read_csv('/home/ada/stuff/streamlit 101/sales/test.csv', na_values=na_value)
-        store = pd.read_csv('/home/ada/stuff/streamlit 101/sales/store.csv', na_values=na_value)
-        submission = pd.read_csv('/home/ada/stuff/streamlit 101/sales/sample_submission.csv', na_values=na_value)
+        train = pd.read_csv('train.csv', na_values=na_value)
+        test = pd.read_csv('test.csv', na_values=na_value)
+        store = pd.read_csv('store.csv', na_values=na_value)
+        submission = pd.read_csv('sample_submission.csv', na_values=na_value)
         full_train = pd.merge(left = train, right = store, how = 'inner', left_on = 'Store', right_on = 'Store')
         full_test = pd.merge(left = test, right = store, how = 'inner', left_on = 'Store', right_on = 'Store')  
 
