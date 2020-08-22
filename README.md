@@ -4,7 +4,7 @@ Pharmaceutical Sales prediction across multiple stores.  End-to-end product that
 Data used is from [kaggle](https://www.kaggle.com/c/rossmann-store-sales/data).
 The product is hosted with heroku. 
 
-Main pages of the app:
+**Main pages of the app:**
 * Home Pages
 * Raw Data 
 * Raw Data Visualisations
