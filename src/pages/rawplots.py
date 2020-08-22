@@ -1,3 +1,5 @@
+''' This scripts takes care of explatory data analysis. It deals mostlt with visualisations of the raw data.'''
+
 import streamlit as st
 import awesome_streamlit as ast
 import seaborn as sns
@@ -11,6 +13,7 @@ def write():
     with st.spinner("Loading Plots ..."):
         st.title('Raw Data Visualisation  📈 📊')
 
+        # read the datasets
         na_value=['',' ','nan','Nan','NaN','na', '<Na>']
         train = pd.read_csv('src/pages/train.csv', na_values=na_value)
         store = pd.read_csv('src/pages/store.csv', na_values=na_value)
@@ -19,6 +22,7 @@ def write():
         st.sidebar.subheader("Choose Feature or Aspect to plot")
         plot = st.sidebar.selectbox("feature", ("Seasonality", "Correlation", "SchoolHoliday", "Open/DayOfWeek", 'Promotions', 'State Holiday', 'PromoIntervals', 'Assortment', 'Store Type','Competition'))
 
+        # SchoolHoliday plots
         if plot == 'SchoolHoliday':
             st.subheader("School Holidays")
             sns.countplot(x='SchoolHoliday', data=full_train, palette = 'Set2').set_title('a count plot of school holidays')
@@ -33,6 +37,7 @@ def write():
             # But for the few affected, their sales don't 
             # """)
 
+        # Competition plots
         if plot == 'Competition':
             st.subheader("Competition Distance")
             # adding Decile_rank column to the DataFrame 
@@ -74,6 +79,8 @@ def write():
             They could be located in big cities where population is dense thus  proximity to competitive stores has a minor influence.
             """)
 
+
+        # Seasonality plots
         if plot == 'Seasonality':
             
             # if st.sidebar.button("Predict", key='predict'):
@@ -121,7 +128,7 @@ def write():
             This is because they take a shorter duration, thus the cumulative effect cannot be well established.
             """)
 
-
+        # Correlation plots
         if plot == 'Correlation':            
             # if st.sidebar.button("Predict", key='predict'):
             st.subheader("Linear Relationships between the Sales and the predictor features")
@@ -147,6 +154,7 @@ def write():
             """)
 
 
+        # Open/DayOfWeek plots
         if plot == 'Open/DayOfWeek':
             st.subheader("Open status in relation to day of the week")
             fig, (axis1) = plt.subplots(1,1,figsize=(16,8))
@@ -163,6 +171,7 @@ def write():
             """)
 
 
+        # PromoIntervals plots
         if plot == 'PromoIntervals':
             st.subheader("Promotion Intervals")
             flatui = ["#9b59b6", "#3498db", "#95a5a6", "#e74c3c", "#34495e", "#2ecc71"]
@@ -177,6 +186,8 @@ def write():
             # Most of the stores are open in the first 6 days and closed on the 7th. Implying Sundays are their only rest days.
             # """)
 
+
+        # Promotions plots
         if plot == 'Promotions':
             flatui = ["#9b59b6", "#3498db", "#95a5a6", "#e74c3c", "#34495e", "#2ecc71"]
             st.subheader("Countplot and Barplots indicating Promotions and Sales and customers across the stores")
@@ -193,6 +204,8 @@ def write():
             The promos prove useful in increasing the volume of sales, thus stores that can’t afford to run a promo on a daily basis should subscribe to the continuous consecutive plans.
             """)
 
+
+        # State Holiday plots
         if plot == 'State Holiday':
             st.subheader("Sales During State Holidays and Ordinary Days")
             full_train["StateHoliday"].loc[full_train["StateHoliday"] == 0] = "0"
@@ -220,22 +233,9 @@ def write():
             The sales are higher during Christmas and Easter holidays.
             """)
 
-        # if plot == 'School Holiday':
-        #     st.subheader("Sales During School Holidays and Ordinary Days")
-        #     sns.countplot(x='SchoolHoliday', data=full_train).set_title('a count plot of school holidays')
-        #     st.pyplot()
-        #     fig, (axis1,axis2) = plt.subplots(1,2,figsize=(15,4))
 
-        #     sns.barplot(x='SchoolHoliday', y='Sales', data=full_train, ax=axis1).set_title('sales across ordinary school days and school holidays')
-        #     sns.barplot(x='SchoolHoliday', y='Customers', data=full_train, ax=axis2).set_title('no of customers across ordinary school days and school holidays')
-        #     st.pyplot()
-        #     st.write("""
-        #     The sales are less during the holidays since most of the stores are closed on holidays 
-        #     and also because the number of holidays are less compared to ordinary days.
-        #     a is representative of public holidays, b - Easter and c -Christmas.
-        #     The sales are higher during Christmas and Easter holidays.
-        #     """)
 
+        # Assortment plots
         if plot == 'Assortment':
             st.subheader("Sales across different assortment types")
             sns.countplot(x='Assortment', data=full_train, order=['a','b','c'], palette = 'husl').set_title('assortment types counts')
@@ -249,6 +249,7 @@ def write():
             The sales volumes across the 3 classes. Despite  the extra(b) class having the least number of stores, it has the highest volume of sales.
             """)
 
+        # Store Type plots
         if plot == 'Store Type':
             st.subheader("Sales across different store types")
             sns.countplot(x='StoreType', data=full_train, order=['a','b','c', 'd'], palette = ["#95a5a6", "#e74c3c", "#34495e", "#2ecc71"]).set_title('a count plot of StoreTypes')
@@ -262,19 +263,3 @@ def write():
             Type a is the most popular store type, while b is the least popular.
             Despite b being the least popular, it records the highest amount of sales.
             """)
-
-        # if plot == 'Competition':
-        #     st.subheader("Sales across different competition distance decile groups")
-        #     # adding Decile_rank column to the DataFrame 
-        #     full_train['Decile_rank'] = pd.qcut(full_train['CompetitionDistance'], 5, labels = False) 
-        #     new_df = full_train[['Decile_rank', 'Sales']]
-        #     # a = new_df.groupby('Decile_rank').sum()
-        #     a = new_df.groupby('Decile_rank').mean()
-
-        #     #plot the decile classes
-        #     plt.figure(figsize=(8,6))
-        #     sns.barplot(x = a.index, y = a.Sales)
-        #     plt.title('Total sales per decile group')
-        #     plt.ylabel('sales')
-        #     plt.xlabel('decile rank')
-        #     st.pyplot()

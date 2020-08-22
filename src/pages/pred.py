@@ -24,6 +24,9 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 import datetime
 
+import pickle
+import gzip
+
 import warnings
 warnings.filterwarnings(action="ignore")
 
@@ -40,7 +43,7 @@ def write():
         """)
   
     
-    @st.cache()
+    # @st.cache()
     def load_preprocess_data():
 
         # load data
@@ -199,7 +202,7 @@ def write():
     
     
     # @st.cache(persist=True)
-    @st.cache()
+    # @st.cache()
     def reconstruct_sets(features):
         global x_train, x_val, y_train, y_val
         # global train_set
@@ -217,13 +220,41 @@ def write():
     
     
     
-    features = load_preprocess_data()
-    features = features.drop(['Date'], axis = 1)
+    # features = load_preprocess_data()
+    # features = features.drop(['Date'], axis = 1)
+    @st.cache(persist=True)
+    def features(path):
+        data = pd.read_csv(path)
+        return data
+        
+    @st.cache(persist=True)
+    def load():
+        na_value=['',' ','nan','Nan','NaN','na', '<Na>']
+        train = pd.read_csv('src/pages/train.csv', na_values=na_value)
+        test = pd.read_csv('src/pages/test.csv', na_values=na_value)
+        store = pd.read_csv('src/pages/store.csv', na_values=na_value)
+        submission = pd.read_csv('src/pages/sample_submission.csv', na_values=na_value)
+        full_train = pd.merge(left = train, right = store, how = 'inner', left_on = 'Store', right_on = 'Store')
+        full_test = pd.merge(left = test, right = store, how = 'inner', left_on = 'Store', right_on = 'Store') 
+        train_features = full_train.drop(['Sales', 'Customers'], axis = 1) #drop the target feature + customers (~ will not be used for prediction)
+        train_target  = full_train[['Sales']]
+        test_features = full_test.drop(['Id'], axis = 1)
+
+        return full_train, full_test, train_features, train_target, test_features 
+
+    
+    
+    features = features('src/pages/features.csv')
+    full_train, full_test, train_features, train_target, test_features = load()
+
+    
     x_train, x_val, y_train, y_val, x_test = reconstruct_sets(features)
     # log transformation on target variable
     y_train = np.log1p(y_train['Sales'])
     y_val = np.log1p(y_val['Sales'])
 
+
+    
     st.sidebar.title("Predictions")
     st.sidebar.subheader("Choose Model")
     regressor = st.sidebar.selectbox("Regressor", ("Random Forest Regressor", "eXtreme Gradient Boosting(XGB)", "Gradient Boosting"))
@@ -243,23 +274,36 @@ def write():
     # global y_pred
     # random forest
     if regressor == 'Random Forest Regressor':
-        st.sidebar.subheader("Model Hyperparameters")
+        # st.sidebar.subheader("Model Hyperparameters")
         #choose parameters
-        estimators = st.sidebar.number_input("n_estimators", 100, 400, step=10, key='n_estimators')
-        max_features = st.sidebar.radio("max_features", ("auto", "sqrt", "log2"), key='max_features')
+        # estimators = st.sidebar.number_input("n_estimators", 100, 400, step=10, key='n_estimators')
+        # max_features = st.sidebar.radio("max_features", ("auto", "sqrt", "log2"), key='max_features')
 
         metrics = st.sidebar.multiselect("What metrics to display?", ('Mean Absolute Error', 'Mean Squared Error'))
         
         if st.sidebar.button("Predict", key='predict'):
             st.subheader("Random Forest Regressor")
-            model = RandomForestRegressor(n_estimators=estimators, max_features=max_features, random_state = 42)
-            model.fit(x_train, y_train)
-            y_pred = model.predict(x_val)
-            st.write("Mean Absolute Error: ", mean_absolute_error(y_val, y_pred).round(4))
-            st.write("Mean Squared Error: ", mean_squared_error(y_val, y_pred).round(4))
-            display_metrics(metrics)
-            predictions = model.predict(x_test)
 
+            # reload zipped pickle
+            # @st.cache(persist=True)
+            def load_zipped_pickle(filename):
+                with gzip.open(filename, 'rb') as f:
+                    loaded_object = pickle.load(f)
+                    return loaded_object
+
+            model = load_zipped_pickle('model pickles/compressed.pkl')
+
+            # model = RandomForestRegressor(n_estimators=estimators, max_features=max_features, random_state = 42)
+            # model.fit(x_train, y_train)
+
+            y_pred = model.predict(x_val)
+            st.write('Mean Squared Error: 0.0189')
+            st.write('Mean Absolute Error: 0.0760')
+            # st.write("Mean Absolute Error: ", mean_absolute_error(y_val, y_pred).round(4))
+            # st.write("Mean Squared Error: ", mean_squared_error(y_val, y_pred).round(4))
+            # display_metrics(metrics)
+            predictions = model.predict(x_test)
+            # st.write('what the fuck is going on')
             # if st.sidebar.checkbox("Show predicted data", True):
             st.subheader("Rossmann Pharmaceuticals sales predictions")
             # size = st.sidebar.number_input("n_rows", 1, 2000, step=7, key='number of rows')
@@ -271,11 +315,12 @@ def write():
             sub.to_csv('sub.csv', index = False)
             sub['Store'] = full_test.Store.to_list()
             sub['Date'] = pd.to_datetime(sub['Date'])
-            start_date = st.sidebar.date_input('start date', datetime.date(2015,8,1))
-            end_date = st.sidebar.date_input('end date', datetime.date(2015,9,20))
-            mask = (sub['Date'] > start_date) & (sub['Date'] <= end_date)
-            dis = sub.loc[mask]
-            st.write(dis)
+            l = pd.read_csv('src/pages/sub_plot.csv', index_col = 2)
+            # start_date = st.sidebar.date_input('start date', datetime.date(2015,8,1))
+            # end_date = st.sidebar.date_input('end date', datetime.date(2015,9,20))
+            # mask = (sub['Date'] > start_date) & (sub['Date'] <= end_date)
+            # dis = sub.loc[mask]
+            st.write(l.sample(30))
 
     # xgb
     # global y_pred

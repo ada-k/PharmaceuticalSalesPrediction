@@ -1,6 +1,8 @@
-import streamlit as st
+''' This is the home/index/introductory page'''
 
-# import awesome_streamlit as ast
+# Libraries
+import streamlit as st
+import awesome_streamlit as ast
 
 
 # pylint: disable=line-too-long
@@ -20,9 +22,6 @@ def write():
             - **Personal Virtue**.
                 """
         )
-        # ast.shared.components.video_youtube(
-        #     src="https://www.youtube.com/embed/B2iAodr0fOo"
-        # )
         st.image('ross.jpg', use_column_width=True)
         st.write("""
         Like any other business entity, profits have to be made in order to send all employees home happy.

@@ -1,5 +1,7 @@
-import streamlit as st
+'''The mother scripts: holds all the pages together'''
 
+# import the child scripts
+import streamlit as st
 import awesome_streamlit as ast
 import src.pages.home
 import src.pages.data 
@@ -10,6 +12,7 @@ import src.pages.insights
 
 ast.core.services.other.set_logging_format()
 
+# create the pages
 PAGES = {
     "Home": src.pages.home,
     "Raw Data":src.pages.data,
@@ -20,6 +23,7 @@ PAGES = {
 }
 
 
+# render the pages
 def main():
     """Main function of the App"""
     st.sidebar.title("Navigation")
@@ -38,6 +42,6 @@ def main():
 """
     )
 
-
+# run it
 if __name__ == "__main__":
     main()

@@ -1,3 +1,5 @@
+'''This writes the insights gained from the EDA.'''
+
 import streamlit as st
 import awesome_streamlit as ast
 
