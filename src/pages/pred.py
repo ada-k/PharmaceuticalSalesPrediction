@@ -246,7 +246,7 @@ def write():
                     loaded_object = pickle.load(f)
                     return loaded_object
 
-            model = load_zipped_pickle('model pickles/compressed.pkl')
+            # model = load_zipped_pickle('model pickles/compressed.pkl')
 
             # fitting a new model
             # model = RandomForestRegressor(n_estimators=estimators, max_features=max_features, random_state = 42)
@@ -293,7 +293,7 @@ def write():
                     loaded_object = pickle.load(f)
                     return loaded_object
 
-            model = load_zipped_pickle('model pickles/compressed_xgb.pkl')
+            # model = load_zipped_pickle('model pickles/compressed_xgb.pkl')
 
             # fitting a new model
             # model = XGBRegressor(eval_metric=eval_metric, booster=booster, random_state = 42)
@@ -338,7 +338,7 @@ def write():
                     loaded_object = pickle.load(f)
                     return loaded_object
 
-            model = load_zipped_pickle('model pickles/compressed_gb.pkl')
+            # model = load_zipped_pickle('model pickles/compressed_gb.pkl')
 
             # fitting a new model
             # model = GradientBoostingRegressor(random_state = 42)
