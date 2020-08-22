@@ -6,6 +6,7 @@ import src.pages.data
 import src.pages.rawplots
 import src.pages.pred
 import src.pages.postplots
+import src.pages.insights
 
 ast.core.services.other.set_logging_format()
 
@@ -13,8 +14,9 @@ PAGES = {
     "Home": src.pages.home,
     "Raw Data":src.pages.data,
     "Raw Data visualisations": src.pages.rawplots,
-    "Predictions": src.pages.pred,
-    "Predictions visualisations": src.pages.postplots,
+    "Run Predictions": src.pages.pred,
+    "Predicted data +  visualisations": src.pages.postplots,
+    "Insights": src.pages.insights
 }
 
 
