@@ -4,6 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import datetime
 
 
 def write():
@@ -11,20 +12,30 @@ def write():
     with st.spinner("Loading Plots ..."):
         st.title('Predicted Sales visualisation  📈 📊')
 
-        data = pd.read_csv('src/pages/sub_plot.csv')
+        data = pd.read_csv('src/pages/sub_plot.csv', index_col = 2)
         # st.sidebar.title("Predicted Sales Seasonality")
         # st.sidebar.subheader("Choose Feature or Aspect to plot")
         # plot = st.sidebar.selectbox("feature", ("Seasonality", "Open", 'Promotions', 'State Holiday', 'Assortment', 'Store Type','Competition'))
-
-
-        # if plot == 'Seasonality':
+        # if st.sidebar.button("View Data", key='Display'):
+        st.sidebar.title('Predicted data')
+        st.sidebar.subheader('Input date ranges')
+        # data = data.set_index('Date', inplace=True)
+        start_date = st.sidebar.date_input('start date', datetime.date(2015,8,1))
+        end_date = st.sidebar.date_input('end date', datetime.date(2015,9,20))
+        # mask = (data['Date'] > start_date) & (data['Date'] <= end_date)
+        # dates = data.index[mask]
+        # date_mask = (data.index > start) & (data.index < end)
+        # dis = data.loc[dates]
+        # dis = data.loc[start_date:end_date]
+        dis = data[data.index.isin(pd.date_range(start_date, end_date))]
+        st.write(dis)
             
         # if st.sidebar.button("Predict", key='predict'):
         st.subheader("Weekly Averaged Predicted Sales Seasonality Plot")
-        time_data = data[['Date', 'Sales']]
-        time_data['datetime'] = pd.to_datetime(time_data['Date'])
+        time_data = data[['Sales']]
+        time_data['datetime'] = pd.to_datetime(time_data.index)
         time_data = time_data.set_index('datetime')
-        time_data = time_data.drop(['Date'], axis = 1)
+        # time_data = time_data.drop(['Date'], axis = 1)
         monthly_time_data = time_data.Sales.resample('D').mean() 
         plt.figure(figsize = (15,7))
         plt.title('Seasonality plot averaged weekly')
