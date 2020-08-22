@@ -40,7 +40,7 @@ def write():
         """)
   
     
-    # @st.cache(persist=True)
+    @st.cache()
     def load_preprocess_data():
 
         # load data
@@ -70,7 +70,7 @@ def write():
         train_features['weekday'] = 1        # Initialize the column with default value of 1
         train_features.loc[train_features['DayOfWeek'] == 5, 'weekday'] = 0
         train_features.loc[train_features['DayOfWeek'] == 6, 'weekday'] = 0
-        train_features = train_features.drop(['Date'], axis = 1)
+        # train_features = train_features.drop(['Date'], axis = 1)
         train_features = train_features.drop(['Store'], axis = 1)
 
         test_features['Date'] = pd.to_datetime(test_features.Date)
@@ -82,22 +82,25 @@ def write():
         test_features['weekday'] = 1        # Initialize the column with default value of 1
         test_features.loc[test_features['DayOfWeek'] == 5, 'weekday'] = 0
         test_features.loc[test_features['DayOfWeek'] == 6, 'weekday'] = 0
-        test_features = test_features.drop(['Date'], axis = 1)
+        # test_features = test_features.drop(['Date'], axis = 1)
         test_features = test_features.drop(['Store'], axis = 1)
         
         
         # numerical and categorical columns (train set)
         categorical = []
         numerical = []
+        timestamp = []
 
         for col in train_features.columns:
             if train_features[col].dtype == object:
                 categorical.append(col)
             elif train_features[col].dtype in ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']:
                 numerical.append(col)
+            else:
+                timestamp.append(col)
 
         # Keep selected columns only
-        my_cols = categorical + numerical
+        my_cols = categorical + numerical + timestamp
         train_features = train_features[my_cols].copy()
         test_features = test_features[my_cols].copy()
         features = pd.concat([train_features, test_features]) #merge the features columns for uniform preprocessing
@@ -196,7 +199,7 @@ def write():
     
     
     # @st.cache(persist=True)
-    # @st.cache(persist=True)
+    @st.cache()
     def reconstruct_sets(features):
         global x_train, x_val, y_train, y_val
         # global train_set
@@ -215,7 +218,8 @@ def write():
     
     
     features = load_preprocess_data()
-    
+    features = features.drop(['Date'], axis = 1)
+
     x_train, x_val, y_train, y_val, x_test = reconstruct_sets(features)
     # log transformation on target variable
     y_train = np.log1p(y_train['Sales'])
