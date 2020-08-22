@@ -156,8 +156,8 @@ def write():
             # sales across dayofweek
             fig, (axis1,axis2) = plt.subplots(1,2,figsize=(15,4))
             sns.barplot(x='DayOfWeek', y='Sales', data=full_train, palette = 'RdBu_r', ax=axis1).set_title('sales across different days of the week ')
-            st.pyplot()
             sns.barplot(x='DayOfWeek', y='Customers', data=full_train, palette = 'RdBu_r', ax=axis2).set_title('customers across different days of the week ')
+            st.pyplot()
             st.write("""
             Most of the stores are open in the first 6 days and closed on the 7th. Implying Sundays are their only rest days.
             """)
