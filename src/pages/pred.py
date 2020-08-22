@@ -71,6 +71,7 @@ def write():
         train_features.loc[train_features['DayOfWeek'] == 5, 'weekday'] = 0
         train_features.loc[train_features['DayOfWeek'] == 6, 'weekday'] = 0
         train_features = train_features.drop(['Date'], axis = 1)
+        train_features = train_features.drop(['Store'], axis = 1)
 
         test_features['Date'] = pd.to_datetime(test_features.Date)
         test_features['Month'] = test_features.Date.dt.month.to_list()
@@ -82,6 +83,7 @@ def write():
         test_features.loc[test_features['DayOfWeek'] == 5, 'weekday'] = 0
         test_features.loc[test_features['DayOfWeek'] == 6, 'weekday'] = 0
         test_features = test_features.drop(['Date'], axis = 1)
+        test_features = test_features.drop(['Store'], axis = 1)
         
         
         # numerical and categorical columns (train set)
@@ -106,46 +108,52 @@ def write():
         features.Promo2SinceWeek = features.Promo2SinceWeek.astype('Int64') 
         features.Promo2SinceYear = features.Promo2SinceYear.astype('Int64')
         features["StateHoliday"].loc[features["StateHoliday"] == 0] = "0"
-        features = features.drop(['Store'], axis = 1)
+        
         
         
         # ''' actual preprocessing: the mighty pipeline '''
         # numeric
         for col in ['CompetitionDistance', 'CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear', 'Promo2SinceWeek', 'Promo2SinceYear']:
             features[col] = features[col].fillna((int(features[col].mean()))) 
-        features.PromoInterval = features.PromoInterval.fillna((features.PromoInterval.mode()))
+        features.PromoInterval = features.PromoInterval.fillna(features.PromoInterval.mode()[0])
+        features.Open = features.Open.fillna(features.Open.mode()[0])
         features = pd.get_dummies(features, columns=['StoreType', 'Assortment', 'PromoInterval', 'StateHoliday'], drop_first=True)
 
 
         # the mighty pipeline
-        categorical_transformer = Pipeline(steps=[
-            ('imputer', SimpleImputer(strategy='most_frequent', missing_values = np.nan))
-        ])
+        # categorical_transformer = Pipeline(steps=[
+        #     ('imputer', SimpleImputer(strategy='most_frequent', missing_values = np.nan))
+        # ])
 
-        categorical_encoder = Pipeline(steps = [
-            ('encoder', OneHotEncoder())
-        ])
+        # categorical_encoder = Pipeline(steps = [
+        #     ('encoder', OneHotEncoder())
+        # ])
 
         # numerical_transformer = Pipeline(steps=[
         #     ('imputer', SimpleImputer(strategy='mean', missing_values = np.nan)),
         #     # ('scaler', RobustScaler())
         # ])
-        numerical_scaler = Pipeline(steps = [
-            ('scaler', RobustScaler())
-        ])
+        # numerical_scaler = Pipeline(steps = [
+        #     ('scaler', RobustScaler())
+        # ])
 
-        # Bundle preprocessing for numerical and categorical data
-        preprocessor = ColumnTransformer(
-            transformers=[
-                # ('num', numerical_transformer, ['CompetitionDistance', 'CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear', 'Promo2SinceWeek', 'Promo2SinceYear']),
-                ('cat', categorical_transformer, ['Open']),
-                # ('cat_map', categorical_encoder, ['StoreType', 'Assortment', 'PromoInterval', 'StateHoliday']),
-                ('scaler', numerical_scaler, numerical)
-            ])
+        # # Bundle preprocessing for numerical and categorical data
+        # preprocessor = ColumnTransformer(
+        #     transformers=[
+        #         # ('num', numerical_transformer, ['CompetitionDistance', 'CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear', 'Promo2SinceWeek', 'Promo2SinceYear']),
+        #         # ('cat', categorical_transformer, ['Open']),
+        #         # ('cat_map', categorical_encoder, ['StoreType', 'Assortment', 'PromoInterval', 'StateHoliday']),
+        #         ('scaler', numerical_scaler, numerical)
+        #     ])
 
-        my_pipeline = Pipeline(steps=[('preprocessor', preprocessor) ])
-        transformed_features = my_pipeline.fit_transform(features)
-        features = pd.DataFrame(transformed_features)
+        # my_pipeline = Pipeline(steps=[('preprocessor', preprocessor) ])
+        # transformed_features = my_pipeline.fit_transform(features)
+        # features = pd.DataFrame(transformed_features)
+        scaler = RobustScaler()
+        c = ['DayOfWeek', 'Open', 'Promo', 'SchoolHoliday', 'CompetitionDistance', 'CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear',
+        'Promo2', 'Promo2SinceWeek', 'Promo2SinceYear', 'WeekOfYear', 'Month', 'Year', 'Day', 'WeekOfYear', 'weekday']
+        features[numerical] = scaler.fit_transform(features[numerical].values)
+        
 
 
         
