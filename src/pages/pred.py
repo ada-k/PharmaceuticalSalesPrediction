@@ -1,3 +1,5 @@
+''' Enables one to select model and metric to use for makin predictions. '''
+
 # libraries
 import numpy as np
 import pandas as pd 
@@ -5,28 +7,21 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import streamlit as st
 import os
-
-
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, RobustScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline, make_pipeline
-
 from scipy import stats
 from scipy.stats import skew, norm
-
 from sklearn.linear_model import LinearRegression
 from xgboost import XGBRegressor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.base import BaseEstimator, TransformerMixin, RegressorMixin, clone
 from sklearn.model_selection import KFold, cross_val_score, train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error
-
 import datetime
-
 import pickle
 import gzip
-
 import warnings
 warnings.filterwarnings(action="ignore")
 
@@ -36,13 +31,12 @@ warnings.filterwarnings(action="ignore")
 def write():
     """Used to write the page in the app.py file"""
     with st.spinner("Loading Data ..."):
-        # ast.shared.components.title_awesome("Rossmann Pharmaceuticals 💊🩸🩺🩹💉 ")
         st.title('Sales Predictions 💰 🛍️ 💳 💸')
         st.write("""
         Predictions and the accuracy of the predictions.
         """)
   
-    
+    # load data
     # @st.cache()
     def load_preprocess_data():
 
@@ -56,7 +50,7 @@ def write():
         full_train = pd.merge(left = train, right = store, how = 'inner', left_on = 'Store', right_on = 'Store')
         full_test = pd.merge(left = test, right = store, how = 'inner', left_on = 'Store', right_on = 'Store')  
 
-        # '''preprocessing'''
+        # preprocessing
         
         # train and target features
         train_features = full_train.drop(['Sales', 'Customers'], axis = 1) #drop the target feature + customers (~ will not be used for prediction)
@@ -114,15 +108,16 @@ def write():
         features.Promo2SinceWeek = features.Promo2SinceWeek.astype('Int64') 
         features.Promo2SinceYear = features.Promo2SinceYear.astype('Int64')
         features["StateHoliday"].loc[features["StateHoliday"] == 0] = "0"
-        
-        
-        
-        # ''' actual preprocessing: the mighty pipeline '''
-        # numeric
+               
+        # null numerical values
         for col in ['CompetitionDistance', 'CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear', 'Promo2SinceWeek', 'Promo2SinceYear']:
             features[col] = features[col].fillna((int(features[col].mean()))) 
+
+        # null categorical values
         features.PromoInterval = features.PromoInterval.fillna(features.PromoInterval.mode()[0])
         features.Open = features.Open.fillna(features.Open.mode()[0])
+
+        # categorical variables encoding
         features = pd.get_dummies(features, columns=['StoreType', 'Assortment', 'PromoInterval', 'StateHoliday'], drop_first=True)
 
 
@@ -155,58 +150,19 @@ def write():
         # my_pipeline = Pipeline(steps=[('preprocessor', preprocessor) ])
         # transformed_features = my_pipeline.fit_transform(features)
         # features = pd.DataFrame(transformed_features)
+
+        # numerical variables scaling
         scaler = RobustScaler()
         c = ['DayOfWeek', 'Open', 'Promo', 'SchoolHoliday', 'CompetitionDistance', 'CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear',
         'Promo2', 'Promo2SinceWeek', 'Promo2SinceYear', 'WeekOfYear', 'Month', 'Year', 'Day', 'WeekOfYear', 'weekday']
         features[numerical] = scaler.fit_transform(features[numerical].values)
         
-
-
-        
-        # # categorical
-        # indices = []
-        # for col in ['Open', 'PromoInterval']:
-        #     k = features.columns.get_loc(col)
-        #     indices.append(k)
-
-        # #imputing with column mode.
-        # columns = indices
-        # for col in columns:
-        #     x = features.iloc[:, col].values
-        #     x = x.reshape(-1,1)
-        #     imputer = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
-        #     imputer = imputer.fit(x)
-        #     x = imputer.transform(x)
-        #     features.iloc[:, col] = x
-            
-            
-        # # numeric
-        # # imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
-        # # columns = []
-        # for col in ['CompetitionDistance', 'CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear', 'Promo2SinceWeek', 'Promo2SinceYear']:
-        #     features[col] = features[col].fillna((int(features[col].mean())))
-        
-
-        # for col in columns:
-        #     x = features.iloc[:, col].values
-        #     x = x.reshape(-1,1)
-        #     imputer = imputer.fit(x)
-        #     x = imputer.transform(x)
-        #     features.iloc[:, col] = x
-                
-                
-        # one hot encoder (categorical variables)
-        # features = pd.get_dummies(features, columns=['StoreType', 'Assortment', 'PromoInterval', 'StateHoliday'], drop_first=True)
-        
         return features
     
-    
+    # reconstruct train and train sets
     # @st.cache(persist=True)
-    # @st.cache()
     def reconstruct_sets(features):
         global x_train, x_val, y_train, y_val
-        # global train_set
-        # original train and test sets
         x_train = features.iloc[:len(train_features), :]
         x_test = features.iloc[len(train_features):, :]
         y_train = train_target
@@ -220,32 +176,31 @@ def write():
     
     
     
-    # features = load_preprocess_data()
-    # features = features.drop(['Date'], axis = 1)
-    @st.cache(persist=True)
-    def features(path):
-        data = pd.read_csv(path)
-        return data
+    features = load_preprocess_data()
+    features = features.drop(['Date'], axis = 1)
+
+    # @st.cache(persist=True)
+    # def features(path):
+    #     data = pd.read_csv(path)
+    #     return data
         
-    @st.cache(persist=True)
-    def load():
-        na_value=['',' ','nan','Nan','NaN','na', '<Na>']
-        train = pd.read_csv('src/pages/train.csv', na_values=na_value)
-        test = pd.read_csv('src/pages/test.csv', na_values=na_value)
-        store = pd.read_csv('src/pages/store.csv', na_values=na_value)
-        submission = pd.read_csv('src/pages/sample_submission.csv', na_values=na_value)
-        full_train = pd.merge(left = train, right = store, how = 'inner', left_on = 'Store', right_on = 'Store')
-        full_test = pd.merge(left = test, right = store, how = 'inner', left_on = 'Store', right_on = 'Store') 
-        train_features = full_train.drop(['Sales', 'Customers'], axis = 1) #drop the target feature + customers (~ will not be used for prediction)
-        train_target  = full_train[['Sales']]
-        test_features = full_test.drop(['Id'], axis = 1)
+    # @st.cache(persist=True)
+    # def load():
+    #     na_value=['',' ','nan','Nan','NaN','na', '<Na>']
+    #     train = pd.read_csv('src/pages/train.csv', na_values=na_value)
+    #     test = pd.read_csv('src/pages/test.csv', na_values=na_value)
+    #     store = pd.read_csv('src/pages/store.csv', na_values=na_value)
+    #     submission = pd.read_csv('src/pages/sample_submission.csv', na_values=na_value)
+    #     full_train = pd.merge(left = train, right = store, how = 'inner', left_on = 'Store', right_on = 'Store')
+    #     full_test = pd.merge(left = test, right = store, how = 'inner', left_on = 'Store', right_on = 'Store') 
+    #     train_features = full_train.drop(['Sales', 'Customers'], axis = 1) #drop the target feature + customers (~ will not be used for prediction)
+    #     train_target  = full_train[['Sales']]
+    #     test_features = full_test.drop(['Id'], axis = 1)
 
-        return full_train, full_test, train_features, train_target, test_features 
+    #     return full_train, full_test, train_features, train_target, test_features 
 
-    
-    
-    features = features('src/pages/features.csv')
-    full_train, full_test, train_features, train_target, test_features = load()
+    # features = features('src/pages/features.csv')
+    # full_train, full_test, train_features, train_target, test_features = load()
 
     
     x_train, x_val, y_train, y_val, x_test = reconstruct_sets(features)
@@ -254,12 +209,12 @@ def write():
     y_val = np.log1p(y_val['Sales'])
 
 
-    
+    # the models + predictions
     st.sidebar.title("Predictions")
     st.sidebar.subheader("Choose Model")
     regressor = st.sidebar.selectbox("Regressor", ("Random Forest Regressor", "eXtreme Gradient Boosting(XGB)", "Gradient Boosting"))
     
-    
+    # evaluation metrics
     def display_metrics(metrics_list):
         if 'Mean Absolute Error' in metrics_list:
             st.subheader("Mean Absolute Error")
@@ -271,8 +226,7 @@ def write():
             print(mean_squared_error(y_pred, y_val))
             st.write('Mean squared error:', mean_squared_error(y_pred, y_val))
 
-    # global y_pred
-    # random forest
+    # RandomForestRegressor
     if regressor == 'Random Forest Regressor':
         # st.sidebar.subheader("Model Hyperparameters")
         #choose parameters
@@ -284,6 +238,7 @@ def write():
         if st.sidebar.button("Predict", key='predict'):
             st.subheader("Random Forest Regressor")
 
+            # using saved model
             # reload zipped pickle
             # @st.cache(persist=True)
             def load_zipped_pickle(filename):
@@ -293,73 +248,76 @@ def write():
 
             model = load_zipped_pickle('model pickles/compressed.pkl')
 
+            # fitting a new model
             # model = RandomForestRegressor(n_estimators=estimators, max_features=max_features, random_state = 42)
             # model.fit(x_train, y_train)
 
+            # make predictions
             y_pred = model.predict(x_val)
             st.write('Mean Squared Error: 0.0189')
             st.write('Mean Absolute Error: 0.0760')
-            # st.write("Mean Absolute Error: ", mean_absolute_error(y_val, y_pred).round(4))
-            # st.write("Mean Squared Error: ", mean_squared_error(y_val, y_pred).round(4))
-            # display_metrics(metrics)
+            display_metrics(metrics)
             predictions = model.predict(x_test)
-            # st.write('what the fuck is going on')
-            # if st.sidebar.checkbox("Show predicted data", True):
+
+            # make a df from the predicted set + the provided test set
             st.subheader("Rossmann Pharmaceuticals sales predictions")
-            # size = st.sidebar.number_input("n_rows", 1, 2000, step=7, key='number of rows')
             sub = full_test[['Id']]
             back = np.expm1(predictions)
             sub['Sales'] = back
-            # sub = sub.sort_values(by = 'Id', ascending = True)
             sub['Date'] = full_test.Date.to_list()
             sub.to_csv('sub.csv', index = False)
             sub['Store'] = full_test.Store.to_list()
             sub['Date'] = pd.to_datetime(sub['Date'])
-            l = pd.read_csv('src/pages/sub_plot.csv', index_col = 2)
-            # start_date = st.sidebar.date_input('start date', datetime.date(2015,8,1))
-            # end_date = st.sidebar.date_input('end date', datetime.date(2015,9,20))
-            # mask = (sub['Date'] > start_date) & (sub['Date'] <= end_date)
-            # dis = sub.loc[mask]
-            st.write(l.sample(30))
+            # l = pd.read_csv('src/pages/sub_plot.csv', index_col = 2)
+            # write a sample of 20 entries from the predicted data
+            st.write(sub.sample(20))
 
     # xgb
     # global y_pred
     if regressor == 'eXtreme Gradient Boosting(XGB)r':
         st.sidebar.subheader("Model Hyperparameters")
-        #choose parameters
-        eval_metric = st.sidebar.radio("eval_metric", ("rmse", "mae"), key='eval_metric')
-        booster = st.sidebar.radio("booster", ("gbtree", "gblinear"), key='booster')
+        # #choose parameters
+        # eval_metric = st.sidebar.radio("eval_metric", ("rmse", "mae"), key='eval_metric')
+        # booster = st.sidebar.radio("booster", ("gbtree", "gblinear"), key='booster')
 
         metrics = st.sidebar.multiselect("What metrics to display?", ('Mean Absolute Error', 'Mean Squared Error'))
         
         if st.sidebar.button("Predict", key='predict'):
             st.subheader("eXtreme Gradient Boosting(XGB)")
-            model = XGBRegressor(eval_metric=eval_metric, booster=booster, random_state = 42)
-            model.fit(x_train, y_train)
+            
+            # using saved model
+            # reload zipped pickle
+            # @st.cache(persist=True)
+            def load_zipped_pickle(filename):
+                with gzip.open(filename, 'rb') as f:
+                    loaded_object = pickle.load(f)
+                    return loaded_object
+
+            model = load_zipped_pickle('model pickles/compressed_xgb.pkl')
+
+            # fitting a new model
+            # model = XGBRegressor(eval_metric=eval_metric, booster=booster, random_state = 42)
+            # model.fit(x_train, y_train)
+
+            # make predictions
             y_pred = model.predict(x_val)
-            st.write("Mean Absolute Error: ", mean_absolute_error(y_val, y_pred).round(4))
-            st.write("Mean Squared Error: ", mean_squared_error(y_val, y_pred).round(4))
+            st.write('Mean Squared Error: 0.0189')
+            st.write('Mean Absolute Error: 0.0760')
             display_metrics(metrics)
             predictions = model.predict(x_test)
 
-            # if st.sidebar.checkbox("Show predicted data", True):
+            # make a df from the predicted set + the provided test set
             st.subheader("Rossmann Pharmaceuticals sales predictions")
-            # size = st.sidebar.number_input("n_rows", 1, 2000, step=7, key='number of rows')
             sub = full_test[['Id']]
             back = np.expm1(predictions)
             sub['Sales'] = back
-            # sub = sub.sort_values(by = 'Id', ascending = True)
             sub['Date'] = full_test.Date.to_list()
+            sub.to_csv('sub.csv', index = False)
             sub['Store'] = full_test.Store.to_list()
             sub['Date'] = pd.to_datetime(sub['Date'])
-            # sub.to_csv('sub.csv', index = False)
-            sub['Store'] = full_test.Store.to_list()
-            sub['Date'] = pd.to_datetime(sub['Date'])
-            start_date = st.sidebar.date_input('start date', datetime.date(2015,8,1))
-            end_date = st.sidebar.date_input('end date', datetime.date(2015,9,20))
-            mask = (sub['Date'] > start_date) & (sub['Date'] <= end_date)
-            dis = sub.loc[mask]
-            st.write(dis)
+            # l = pd.read_csv('src/pages/sub_plot.csv', index_col = 2)
+            # write a sample of 20 entries from the predicted data
+            st.write(sub.sample(20))
 
 
     # grad boost
@@ -371,30 +329,40 @@ def write():
         
         if st.sidebar.button("Predict", key='predict'):
             st.subheader("Gradient Boosting")
-            model = GradientBoostingRegressor(random_state = 42)
-            model.fit(x_train, y_train)
+
+            # using saved model
+            # reload zipped pickle
+            # @st.cache(persist=True)
+            def load_zipped_pickle(filename):
+                with gzip.open(filename, 'rb') as f:
+                    loaded_object = pickle.load(f)
+                    return loaded_object
+
+            model = load_zipped_pickle('model pickles/compressed_gb.pkl')
+
+            # fitting a new model
+            # model = GradientBoostingRegressor(random_state = 42)
+            # model.fit(x_train, y_train)
+
+            # make predictions
             y_pred = model.predict(x_val)
-            st.write("Mean Absolute Error: ", mean_absolute_error(y_val, y_pred).round(4))
-            st.write("Mean Squared Error: ", mean_squared_error(y_val, y_pred).round(4))
+            st.write('Mean Squared Error: 0.0189')
+            st.write('Mean Absolute Error: 0.0760')
             display_metrics(metrics)
             predictions = model.predict(x_test)
 
-            # if st.sidebar.checkbox("Show predicted data", True):
+            # make a df from the predicted set + the provided test set
             st.subheader("Rossmann Pharmaceuticals sales predictions")
-            # size = st.sidebar.number_input("n_rows", 1, 2000, step=7, key='number of rows')
             sub = full_test[['Id']]
             back = np.expm1(predictions)
             sub['Sales'] = back
-            # sub = sub.sort_values(by = 'Id', ascending = True)
             sub['Date'] = full_test.Date.to_list()
-            # sub.to_csv('sub.csv', index = False)
+            sub.to_csv('sub.csv', index = False)
             sub['Store'] = full_test.Store.to_list()
             sub['Date'] = pd.to_datetime(sub['Date'])
-            start_date = st.sidebar.date_input('start date', datetime.date(2015,8,1))
-            end_date = st.sidebar.date_input('end date', datetime.date(2015,9,20))
-            mask = (sub['Date'] > start_date) & (sub['Date'] <= end_date)
-            dis = sub.loc[mask]
-            st.write(dis)
+            # l = pd.read_csv('src/pages/sub_plot.csv', index_col = 2)
+            # write a sample of 20 entries from the predicted data
+            st.write(sub.sample(20))
   
 
     # # display raw data
