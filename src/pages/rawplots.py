@@ -17,7 +17,7 @@ def write():
         full_train = pd.merge(left = train, right = store, how = 'inner', left_on = 'Store', right_on = 'Store')
         st.sidebar.title("Gallery")
         st.sidebar.subheader("Choose Feature or Aspect to plot")
-        plot = st.sidebar.selectbox("feature", ("Seasonality", "Correlation", "SchoolHoliday", "Competition", "Open/DayOfWeek", 'Promotions', 'State Holiday', 'PromoIntervals', 'Assortment', 'Store Type','Competition'))
+        plot = st.sidebar.selectbox("feature", ("Seasonality", "Correlation", "SchoolHoliday", "Open/DayOfWeek", 'Promotions', 'State Holiday', 'PromoIntervals', 'Assortment', 'Store Type','Competition'))
 
         if plot == 'SchoolHoliday':
             st.subheader("School Holidays")

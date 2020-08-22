@@ -219,7 +219,6 @@ def write():
     
     features = load_preprocess_data()
     features = features.drop(['Date'], axis = 1)
-
     x_train, x_val, y_train, y_val, x_test = reconstruct_sets(features)
     # log transformation on target variable
     y_train = np.log1p(y_train['Sales'])

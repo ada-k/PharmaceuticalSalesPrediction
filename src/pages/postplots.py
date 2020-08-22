@@ -6,11 +6,10 @@ import numpy as np
 import pandas as pd
 import datetime
 
-
 def write():
     """Used to write the page in the app.py file"""
     with st.spinner("Loading Plots ..."):
-        st.title('Predicted Sales visualisation  📈 📊')
+        st.title('Predicted Sales and its visualisation  📈 📊')
 
         data = pd.read_csv('src/pages/sub_plot.csv', index_col = 2)
         # st.sidebar.title("Predicted Sales Seasonality")
@@ -18,18 +17,34 @@ def write():
         # plot = st.sidebar.selectbox("feature", ("Seasonality", "Open", 'Promotions', 'State Holiday', 'Assortment', 'Store Type','Competition'))
         # if st.sidebar.button("View Data", key='Display'):
         st.sidebar.title('Predicted data')
-        st.sidebar.subheader('Input date ranges')
+        # st.sidebar.subheader('Input date ranges')
+        # data.index = pd.to_datetime(data.index)
+        data.Sales = data.Sales.astype(int)
         # data = data.set_index('Date', inplace=True)
-        start_date = st.sidebar.date_input('start date', datetime.date(2015,8,1))
-        end_date = st.sidebar.date_input('end date', datetime.date(2015,9,20))
-        # mask = (data['Date'] > start_date) & (data['Date'] <= end_date)
-        # dates = data.index[mask]
-        # date_mask = (data.index > start) & (data.index < end)
-        # dis = data.loc[dates]
+        # start_date = st.sidebar.text_input('start date', "2015-9-19")
+        # end_date = st.sidebar.text_input('end date', "2015-9-20")
+        # # mask = (data['Date'] > start_date) & (data['Date'] <= end_date)
+        # # dates = data.index[mask]
+        # # date_mask = (data.index > start) & (data.index < end)
+        # # dis = data.loc[dates]
+        # start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
+        # end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
+
         # dis = data.loc[start_date:end_date]
-        dis = data[data.index.isin(pd.date_range(start_date, end_date))]
-        st.write(dis)
+        # dis = data.loc[data.index > start_date]
+        # st.write(dis)
             
+
+
+        st.sidebar.subheader('Input Store ID')
+        store_id = st.sidebar.number_input('Store ID', 1)
+        store_data = data.loc[data.Store == store_id]
+        st.write(store_data)
+
+
+
+
+
         # if st.sidebar.button("Predict", key='predict'):
         st.subheader("Weekly Averaged Predicted Sales Seasonality Plot")
         time_data = data[['Sales']]
@@ -50,6 +65,3 @@ def write():
         From the train data, it is observed that most stores are closed on Sundays, hence the predicted sales for Sundays.
         The sales peak on Mondays then flatten during the remaining 5 days of the week.
         """)
-            
-
-
