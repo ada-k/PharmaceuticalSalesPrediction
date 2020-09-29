@@ -24,3 +24,13 @@ The [web-app](https://rossman-sales-pred.herokuapp.com/) is hosted with heroku.
 * Insights.
 
 ### Project Structure
+`kernels`contains the following notebooks:
+* eda-rossmanstores.ipynb -eda notebook
+* salespred.ipynb - ML notebook
+`licence`License template
+`readme`Markdown file giving a brief description of the project and its structure.
+`Procfile`Heroku main dyno
+`app.py`Streamlit's mother script
+`src` Streamlit scripts/pages
+`runtime.txt`Defining python version for heroku
+`worker.py`Heroku worker dyno
